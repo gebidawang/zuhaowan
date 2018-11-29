@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style type="text/css">
+        .face{
+            width: 90%;
+            margin: 10px 5%;
+        }
+        .nav{
+            margin-top: 70px;
+        }
+        html, body{
+            background: url("{% static 'img/11.jpg' %}") no-repeat;
+        }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+<body>
+    {% include 'header.html' with title='首页' %}
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active"><a href="#">学生设置</a></li>
+        <li role="presentation"><a href="#">课程添加</a></li>
+        <li role="presentation"><a href="#">选课</a></li>
+    </ul>
+    <div class="face">
+        {% include 'home/add_stu.html' %}
+    </div>
+    {% include 'tips.html' %}
+</body>
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/add_stu.js' %}"></script>
+<script type="text/javascript">
+    set_class();
+    $('li[role="presentation"]').click(function () {
+        $('li[role="presentation"]').removeAttr('class');
+        $(this).attr('class', 'active');
+        if($(this).text() == '学生设置'){
+            let str = `{% include 'home/add_stu.html' %}`;
+            $('.face').empty().append(str);
+            //获取班级
+            set_class();
+        }
+        else if($(this).text() == '选课'){
+            let str = `{% include 'home/select.html' %}`;
+            $('.face').empty().append(str);
+            set_crouse();
+            touch_s();
+        }
+        else
+        {
+            let str = `{% include 'home/add_cross.html' %}`;
+            $('.face').empty().append(str);
+            get_tids();
+            add_crouse();
+        }
+    });
+
+
+
+
+    //定义函数完成班级信息的设置
+    function set_class() {
+        ajax_request('{% url "get_class" %}', '', 'get', function(res){
+            for(i=0; i < res.length; i++){
+                $('#classes').append(`
+                <li><a>${res[i]}</a></li>
+                `)
+            }
+            add_click();
+        });
+        add_stuinfor();
+    }
+    //定义函数完成学生信息的添加
+    function add_stuinfor() {
+        $('#submit1').click(function (event) {
+            let e = event||window.event;
+            e.preventDefault();
+            //获取form表单数据
+            let paras = $('form').serialize();
+            paras += "&sex=" + $("#sex").text() + '&class=' + $("#class").text();
+            // ajax请求将数据存储导数据库
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            });
+            ajax_request('{% url "add_stuinfor" %}', paras, "POST",  function(res){
+                console.log(res.msg);
+                animate(res.msg)
+            } )
+        })
+    }
+    //定义函数完成课程信息的添加
+    function add_crouse() {
+        $('#submit2').click(function (event) {
+            let e = event||window.event;
+            e.preventDefault();
+            //获取form表单数据
+            let paras = $('form').serialize();
+            paras += "&c_course=" + $("#class").text() + '&teacher=' + $('#t_id').text();
+            console.log(paras);
+            // ajax请求将数据存储导数据库
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}' }
+            });
+            ajax_request('{% url "add_scours" %}', paras, "POST",  function(res){
+                console.log(res.msg);
+                animate(res.msg)
+            } )
+        })
+    }
+    //定义函数完成选课信息
+    function set_crouse() {
+        ajax_request('{% url "get_crouse" %}', '', 'get', function(res){
+            for(i=0; i < res.length; i++){
+                $('#classes').append(`
+                <li><a>${res[i]}</a></li>
+                `)
+            }
+            add_click();
+            set_teas();
+        });
+        add_stuinfor();
+    }
+
+    //定义函数完成授课老师的选择
+    function set_teas() {
+        $('#classes li').on('click', function () {
+            {#$('.tes').show();#}
+            $('.tes').css({
+                opacity: 1
+            });
+            paras = 'c_name=' + $(this).text();
+            ajax_request('{% url "get_all_teachers" %}', paras, 'get', function(res){
+                $('#classes2 li').remove();
+                for(i=0; i < res.length; i++){
+                    $('#classes2').append(`
+                <li><a>${res[i].name + '(' + res[i].id + ')'}</a></li>
+                `)
+                }
+                add_click();
+            });
+            add_stuinfor();
+        })
+    }
+
+
+    //定义函数完成所有老师工号的获取
+    function get_tids() {
+        ajax_request('{% url "get_teaid" %}', '', 'get', function(res){
+            for(i=0; i < res.length; i++){
+                $('#teacher').append(`
+                <li><a>${res[i]}</a></li>
+                `)
+            }
+            add_click();
+        });
+    }
+
+
+    //定义函数给成绩和课程建立联系
+    function touch_s() {
+        $('#submit3').click(function (event) {
+            let e = event||window.event;
+            e.preventDefault();
+            //获取form表单数据
+            let paras = $('form').serialize();
+            paras += "&c_name=" + $("#select_c").text() + '&t_id=' + $("#select_t").text();
+            // ajax请求将数据存储导数据库
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            });
+            ajax_request('{% url "touch_score" %}', paras, "POST",  function(res){
+                console.log(res.msg);
+                animate(res.msg)
+            } )
+        })
+    }
+</script>
+</html>

@@ -1,0 +1,24 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+html, body{
+    font-size: 10px;
+}
+.input-group{
+    margin: 1rem 0;
+    padding: 0 1rem;
+}
+.login{
+    text-align: center;
+}
+.btn {
+    width: 80%;
+}
+.login a{
+    margin-top: 2rem;
+    display: block;
+}
+form{
+    margin-top: 10rem;
+}

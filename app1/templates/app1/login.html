@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" href="{% static 'css/app1.css' %}">
+</head>
+<body>
+<div class="bg">
+{% include 'header.html' with title='用户登录' title1='' %}
+<form action="">
+    <div class="input-group">
+  <span class="input-group-addon" id="basic-addon1">用户名：</span>
+  <input type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1" name="username">
+</div>
+    <div class="input-group">
+  <span class="input-group-addon" id="basic-addon1"> <span style="letter-spacing: 1em">密</span>码：</span>
+  <input type="password" class="form-control" placeholder="Password" aria-describedby="basic-addon1" name="password">
+</div>
+     <div class="login">
+            <input class="btn btn-default" type="submit" value="登 陆">
+            <a href="{% url 'regist' %}">立即注册</a>
+     </div>
+</form>
+{% include 'tips.html' %}
+    </div>
+</body>
+<script type="text/javascript">
+    $('input[type=submit]').click(function (event) {
+        e = event || window.event;
+        e.preventDefault();
+    {#    获取form表单数据#}
+        let paras = $('form').serialize();
+        $.ajaxSetup({
+    data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+});
+    {#    开始ajax请求#}
+        $.ajax({
+            url: '{% url 'login_e' %}',
+            type: 'post',
+            data: paras,
+            success: function (res) {
+                res = JSON.parse(res);
+                if (res.code == 200 ){
+                    window.location.href="../show_home"
+                }
+                else{
+                    animate(res.msg)
+                }
+            }
+        })
+    })
+</script>
+</html>
